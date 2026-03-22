@@ -1,0 +1,32 @@
+# Environment files (contain secrets — never commit)
+.env
+.env.local
+.env.production
+backend/.env
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+*.egg-info/
+dist/
+.pytest_cache/
+
+# Node
+node_modules/
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+
+# Alembic
+# (keep versions/ committed — they define the schema)
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
