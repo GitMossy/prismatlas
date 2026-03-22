@@ -124,7 +124,7 @@ const CONDITION_OPTIONS = [
 // ── Workflow selector dropdown ────────────────────────────────────────────────
 
 function WorkflowSelector({
-  nodeId,
+  nodeId: _nodeId,
   currentTemplateId,
   currentTemplateName,
   templates,
@@ -611,7 +611,7 @@ export default function HierarchyBuilder() {
   })
 
   const updateNode = useMutation({
-    mutationFn: ({ id, ...body }: { id: string; workflow_template_id: string | null }) =>
+    mutationFn: ({ id, ...body }: { id: string; workflow_template_id?: string | null; depends_on_node_id?: string | null; dependency_condition?: Record<string, string> | null }) =>
       hierarchyApi.updateNode(id, body),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['hierarchy-nodes', selectedProjectId, DIMENSION] }),
   })

@@ -11,6 +11,7 @@ import type { NodeMembership } from '../../api/hierarchy'
 
 // ---- Shared UI atoms ----
 
+// @ts-ignore -- used in future readiness panel
 function ReadinessBar({ value, compact }: { value: number; compact?: boolean }) {
   const pct = Math.round(value * 100)
   const colour = value >= 0.9 ? 'bg-green-500' : value >= 0.5 ? 'bg-amber-400' : 'bg-red-500'
