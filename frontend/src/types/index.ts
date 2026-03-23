@@ -39,7 +39,6 @@ export interface ProjectObject {
   area_id: string | null
   unit_id: string | null
   parent_object_id: string | null
-  class_definition_id: string | null
   name: string
   object_type: string
   status: string

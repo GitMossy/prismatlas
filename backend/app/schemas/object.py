@@ -9,7 +9,6 @@ class ObjectCreate(BaseModel):
     area_id: uuid.UUID | None = None
     unit_id: uuid.UUID | None = None
     parent_object_id: uuid.UUID | None = None
-    class_definition_id: uuid.UUID | None = None
     name: str
     object_type: str  # EM, IO, CM, Phase, Recipe, etc.
     status: str = "active"
@@ -24,7 +23,6 @@ class ObjectUpdate(BaseModel):
     area_id: uuid.UUID | None = None
     unit_id: uuid.UUID | None = None
     parent_object_id: uuid.UUID | None = None
-    class_definition_id: uuid.UUID | None = None
     name: str | None = None
     object_type: str | None = None
     status: str | None = None
@@ -43,7 +41,6 @@ class ObjectResponse(BaseModel):
     area_id: uuid.UUID | None
     unit_id: uuid.UUID | None
     parent_object_id: uuid.UUID | None
-    class_definition_id: uuid.UUID | None
     name: str
     object_type: str
     status: str
