@@ -38,12 +38,12 @@ units_router = APIRouter(prefix="/units", tags=["units"])
 
 @router.get("", response_model=list[ProjectResponse])
 def list_projects(db: Session = Depends(get_db), user_id: str = Depends(get_current_user)):
-    return db.query(Project).filter(Project.created_by == uuid.UUID(user_id)).all()
+    return db.query(Project).filter(Project.user_id == uuid.UUID(user_id)).all()
 
 
 @router.post("", response_model=ProjectResponse, status_code=201)
 def create_project(body: ProjectCreate, db: Session = Depends(get_db), user_id: str = Depends(get_current_user)):
-    project = Project(**body.model_dump(), created_by=uuid.UUID(user_id))
+    project = Project(**body.model_dump(), user_id=uuid.UUID(user_id))
     db.add(project)
     db.commit()
     db.refresh(project)
@@ -52,7 +52,7 @@ def create_project(body: ProjectCreate, db: Session = Depends(get_db), user_id: 
 
 @router.get("/{project_id}", response_model=ProjectResponse)
 def get_project(project_id: uuid.UUID, db: Session = Depends(get_db), user_id: str = Depends(get_current_user)):
-    project = db.query(Project).filter(Project.id == project_id, Project.created_by == uuid.UUID(user_id)).first()
+    project = db.query(Project).filter(Project.id == project_id, Project.user_id == uuid.UUID(user_id)).first()
     if not project:
         raise HTTPException(status_code=404, detail="Project not found")
     return project
@@ -60,7 +60,7 @@ def get_project(project_id: uuid.UUID, db: Session = Depends(get_db), user_id: s
 
 @router.put("/{project_id}", response_model=ProjectResponse)
 def update_project(project_id: uuid.UUID, body: ProjectUpdate, db: Session = Depends(get_db), user_id: str = Depends(get_current_user)):
-    project = db.query(Project).filter(Project.id == project_id, Project.created_by == uuid.UUID(user_id)).first()
+    project = db.query(Project).filter(Project.id == project_id, Project.user_id == uuid.UUID(user_id)).first()
     if not project:
         raise HTTPException(status_code=404, detail="Project not found")
     for field, value in body.model_dump(exclude_none=True).items():
@@ -72,7 +72,7 @@ def update_project(project_id: uuid.UUID, body: ProjectUpdate, db: Session = Dep
 
 @router.delete("/{project_id}", status_code=204)
 def delete_project(project_id: uuid.UUID, db: Session = Depends(get_db), user_id: str = Depends(get_current_user)):
-    project = db.query(Project).filter(Project.id == project_id, Project.created_by == uuid.UUID(user_id)).first()
+    project = db.query(Project).filter(Project.id == project_id, Project.user_id == uuid.UUID(user_id)).first()
     if not project:
         raise HTTPException(status_code=404, detail="Project not found")
     db.delete(project)

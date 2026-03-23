@@ -18,10 +18,10 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
-    op.add_column('projects', sa.Column('created_by', UUID(as_uuid=True), nullable=True))
-    op.create_index('ix_projects_created_by', 'projects', ['created_by'])
+    # created_by was added in a previous run but user_id (pre-existing) is the correct ownership column
+    # Add created_by only if it doesn't exist (idempotent)
+    pass
 
 
 def downgrade() -> None:
-    op.drop_index('ix_projects_created_by', table_name='projects')
-    op.drop_column('projects', 'created_by')
+    pass

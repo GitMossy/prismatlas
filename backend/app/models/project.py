@@ -16,9 +16,11 @@ if TYPE_CHECKING:
 class Project(UUIDMixin, TimestampMixin, Base):
     __tablename__ = "projects"
 
+    user_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False, index=True)
     name: Mapped[str] = mapped_column(String(255), nullable=False)
     description: Mapped[str | None] = mapped_column(Text)
-    created_by: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), nullable=True, index=True)
+    color: Mapped[str | None] = mapped_column(String(50))
+    created_by: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), nullable=True)
 
     areas: Mapped[list["Area"]] = relationship("Area", back_populates="project", cascade="all, delete-orphan")
     objects: Mapped[list["Object"]] = relationship("Object", back_populates="project")
