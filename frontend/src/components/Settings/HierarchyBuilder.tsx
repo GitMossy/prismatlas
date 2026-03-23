@@ -39,6 +39,12 @@ import {
   TbGitBranch,
   TbArrowRight,
   TbX,
+  TbFileCertificate,
+  TbFileDescription,
+  TbFileText,
+  TbFileCheck,
+  TbTag,
+  TbPlus,
 } from 'react-icons/tb'
 import { hierarchyApi } from '../../api/hierarchy'
 import { listTemplates } from '../../api/workflows'
@@ -58,7 +64,7 @@ interface PaletteItem {
   label: string
   icon: React.ReactNode
   color: string
-  group: 'structure' | 'class' | 'instance'
+  group: 'structure' | 'class' | 'instance' | 'document' | 'custom'
 }
 
 const PALETTE_ITEMS: PaletteItem[] = [
@@ -71,16 +77,49 @@ const PALETTE_ITEMS: PaletteItem[] = [
   { type: 'unit_class',     label: 'Unit Classes',   icon: <TbBox size={16} />,         color: 'text-indigo-500',  group: 'class' },
   { type: 'phase_class',    label: 'Phase Classes',  icon: <TbActivity size={16} />,    color: 'text-violet-500',  group: 'class' },
   // Instances
-  { type: 'unit_instance',  label: 'Unit Instance',  icon: <TbStack2 size={16} />,      color: 'text-emerald-500', group: 'instance' },
-  { type: 'em_instance',    label: 'EM Instance',    icon: <TbServer size={16} />,      color: 'text-green-500',   group: 'instance' },
-  { type: 'cm_instance',    label: 'CM Instance',    icon: <TbPointFilled size={16} />, color: 'text-teal-500',    group: 'instance' },
+  { type: 'unit_instance',  label: 'Unit Instance',  icon: <TbStack2 size={16} />,         color: 'text-emerald-500', group: 'instance' },
+  { type: 'em_instance',    label: 'EM Instance',    icon: <TbServer size={16} />,         color: 'text-green-500',   group: 'instance' },
+  { type: 'cm_instance',    label: 'CM Instance',    icon: <TbPointFilled size={16} />,    color: 'text-teal-500',    group: 'instance' },
+  // Documents
+  { type: 'urs_doc',        label: 'URS',            icon: <TbFileCertificate size={16} />, color: 'text-orange-500',  group: 'document' },
+  { type: 'frs_doc',        label: 'FRS',            icon: <TbFileDescription size={16} />, color: 'text-rose-500',    group: 'document' },
+  { type: 'sds_doc',        label: 'SDS',            icon: <TbFileText size={16} />,        color: 'text-pink-500',    group: 'document' },
+  { type: 'test_doc',       label: 'Test',           icon: <TbFileCheck size={16} />,       color: 'text-fuchsia-500', group: 'document' },
 ]
 
 const PALETTE_GROUPS: { key: PaletteItem['group']; label: string }[] = [
   { key: 'structure', label: 'Structure' },
   { key: 'class',     label: 'Classes' },
   { key: 'instance',  label: 'Instances' },
+  { key: 'document',  label: 'Documents' },
 ]
+
+// ── Custom palette persistence ────────────────────────────────────────────────
+
+const CUSTOM_PALETTE_KEY = 'prismatlas_custom_palette'
+
+function loadCustomPalette(): PaletteItem[] {
+  try {
+    const raw = localStorage.getItem(CUSTOM_PALETTE_KEY)
+    if (!raw) return []
+    return (JSON.parse(raw) as { type: string; label: string }[]).map((c) => ({
+      type: c.type,
+      label: c.label,
+      icon: <TbTag size={16} />,
+      color: 'text-slate-400',
+      group: 'custom' as const,
+    }))
+  } catch {
+    return []
+  }
+}
+
+function saveCustomPalette(items: PaletteItem[]) {
+  localStorage.setItem(
+    CUSTOM_PALETTE_KEY,
+    JSON.stringify(items.map((i) => ({ type: i.type, label: i.label }))),
+  )
+}
 
 function nodeIcon(type: string, open = false, size = 15): React.ReactNode {
   const item = PALETTE_ITEMS.find((p) => p.type === type)
@@ -227,11 +266,11 @@ function PaletteCard({ item }: { item: PaletteItem }) {
 
 // ── Drag ghost ────────────────────────────────────────────────────────────────
 
-function DragGhost({ type }: { type: string }) {
-  const item = PALETTE_ITEMS.find((p) => p.type === type)
+function DragGhost({ type, allItems }: { type: string; allItems: PaletteItem[] }) {
+  const item = allItems.find((p) => p.type === type)
   return (
     <div className="flex items-center gap-2 px-3 py-2 rounded-lg border border-primary bg-card shadow-lg opacity-90 w-44">
-      <span className={`shrink-0 ${item?.color ?? ''}`}>{item?.icon}</span>
+      <span className={`shrink-0 ${item?.color ?? 'text-slate-400'}`}>{item?.icon ?? <TbTag size={16} />}</span>
       <span className="text-sm font-medium">{item?.label ?? type}</span>
     </div>
   )
@@ -632,6 +671,30 @@ export default function HierarchyBuilder() {
   const [pending, setPending] = useState<PendingCreate>(null)
   const [expanded, setExpanded] = useState<Set<string>>(new Set())
   const [draggingType, setDraggingType] = useState<string | null>(null)
+  const [customItems, setCustomItems] = useState<PaletteItem[]>(loadCustomPalette)
+  const [addingCustom, setAddingCustom] = useState(false)
+  const [customLabel, setCustomLabel] = useState('')
+
+  const allPaletteItems = [...PALETTE_ITEMS, ...customItems]
+
+  function handleAddCustom() {
+    const label = customLabel.trim()
+    if (!label) return
+    const type = `custom_${label.toLowerCase().replace(/\s+/g, '_')}`
+    if (allPaletteItems.some((i) => i.type === type)) return
+    const newItem: PaletteItem = { type, label, icon: <TbTag size={16} />, color: 'text-slate-400', group: 'custom' }
+    const updated = [...customItems, newItem]
+    setCustomItems(updated)
+    saveCustomPalette(updated)
+    setCustomLabel('')
+    setAddingCustom(false)
+  }
+
+  function handleDeleteCustom(type: string) {
+    const updated = customItems.filter((i) => i.type !== type)
+    setCustomItems(updated)
+    saveCustomPalette(updated)
+  }
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } })
@@ -753,6 +816,61 @@ export default function HierarchyBuilder() {
             </div>
           ))}
 
+          {/* Custom palette */}
+          <div>
+            <div className="flex items-center justify-between mb-1.5">
+              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Custom</p>
+              <button
+                onClick={() => setAddingCustom(true)}
+                className="p-0.5 rounded hover:bg-accent text-muted-foreground hover:text-foreground"
+                title="Add custom type"
+              >
+                <TbPlus size={13} />
+              </button>
+            </div>
+            <div className="space-y-1">
+              {customItems.map((item) => (
+                <div key={item.type} className="flex items-center gap-1 group/custom">
+                  <div className="flex-1 min-w-0">
+                    <PaletteCard item={item} />
+                  </div>
+                  <button
+                    onClick={() => handleDeleteCustom(item.type)}
+                    className="p-0.5 rounded text-muted-foreground hover:text-destructive opacity-0 group-hover/custom:opacity-100 transition-opacity shrink-0"
+                    title="Remove"
+                  >
+                    <TbX size={12} />
+                  </button>
+                </div>
+              ))}
+              {customItems.length === 0 && !addingCustom && (
+                <p className="text-xs text-muted-foreground italic px-1">No custom types yet</p>
+              )}
+              {addingCustom && (
+                <form
+                  className="flex gap-1"
+                  onSubmit={(e) => { e.preventDefault(); handleAddCustom() }}
+                >
+                  <input
+                    autoFocus
+                    className="flex-1 h-7 text-xs border border-input bg-background rounded px-2 min-w-0"
+                    placeholder="Label…"
+                    value={customLabel}
+                    onChange={(e) => setCustomLabel(e.target.value)}
+                    onKeyDown={(e) => { if (e.key === 'Escape') { setAddingCustom(false); setCustomLabel('') } }}
+                  />
+                  <button
+                    type="submit"
+                    disabled={!customLabel.trim()}
+                    className="h-7 px-2 text-xs bg-primary text-primary-foreground rounded disabled:opacity-40"
+                  >
+                    Add
+                  </button>
+                </form>
+              )}
+            </div>
+          </div>
+
           <div className="rounded-lg bg-muted/40 border border-border px-3 py-2.5 text-xs text-muted-foreground space-y-1 mt-1">
             <p>Drag any item onto the tree — drop at root for top-level, drop onto a node to nest inside it.</p>
           </div>
@@ -760,7 +878,7 @@ export default function HierarchyBuilder() {
       </div>
 
       <DragOverlay dropAnimation={null}>
-        {draggingType ? <DragGhost type={draggingType} /> : null}
+        {draggingType ? <DragGhost type={draggingType} allItems={allPaletteItems} /> : null}
       </DragOverlay>
     </DndContext>
   )

@@ -21,7 +21,6 @@ from app.api.readiness import entities_router as readiness_entities_router, proj
 from app.api.evidence import router as evidence_router, evidence_router as evidence_delete_router
 from app.api.slice import router as slice_router
 from app.api.resources import router as resources_router
-from app.api.class_definitions import router as class_definitions_router
 from app.api.schedule import router as schedule_router
 from app.api.export import router as export_router
 from app.api.link_templates import router as link_templates_router
@@ -111,9 +110,6 @@ app.include_router(slice_router)
 
 # Resources (RBS/OBS)
 app.include_router(resources_router)
-
-# Class definitions (PBS / Instance Set concept)
-app.include_router(class_definitions_router)
 
 # Schedule / CPM
 app.include_router(schedule_router)

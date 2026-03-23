@@ -12,7 +12,6 @@ import InsightPanel from './components/InsightPanel/InsightPanel'
 import CubeView from './components/CubeView'
 import GanttView from './components/GanttView'
 import MatrixViewContainer from './components/MatrixView'
-import ClassLibraryView from './components/ClassLibrary/ClassLibraryView'
 import SettingsView from './components/Settings/SettingsView'
 
 const SLICE_VIEWS = new Set(['graph', 'list', 'cube'])
@@ -91,7 +90,6 @@ export default function App() {
 {viewMode === 'cube' && <CubeView />}
           {viewMode === 'gantt' && <GanttView />}
           {viewMode === 'matrix' && <MatrixViewContainer />}
-          {viewMode === 'library' && <ClassLibraryView />}
           {viewMode === 'settings' && <SettingsView />}
 
           {/* Insight panel when slice filters are active */}

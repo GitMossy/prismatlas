@@ -18,7 +18,6 @@ import {
   TbTimeline,
   TbLayoutGrid,
   TbBox,
-  TbLibrary,
   TbSettings,
   TbPlus,
 } from 'react-icons/tb'
@@ -31,7 +30,6 @@ const NAV_ITEMS: { label: string; mode: ViewMode; requiresProject: boolean; Icon
   { label: 'Gantt View',        mode: 'gantt',     requiresProject: true,  Icon: TbTimeline },
   { label: 'Matrix View',       mode: 'matrix',    requiresProject: true,  Icon: TbLayoutGrid },
   { label: 'Cube View',         mode: 'cube',      requiresProject: true,  Icon: TbBox },
-  { label: 'Class Library',    mode: 'library',   requiresProject: true,  Icon: TbLibrary },
 ]
 
 export default function Sidebar() {

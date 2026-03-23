@@ -2,12 +2,10 @@
  * ObjectFormModal — used for both Create and Edit.
  * Uses shadcn Dialog for proper focus trap and ESC close.
  */
-import * as React from 'react'
 import { useEffect, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { createObject, updateObject } from '../../api/objects'
 import client from '../../api/client'
-import { useClassDefinitions } from '../../hooks/useClassDefinitions'
 import type { ProjectObject, Area, Unit } from '../../types'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '../ui/dialog'
 import { Button } from '../ui/button'
@@ -36,7 +34,6 @@ interface FormValues {
   planned_end: string
   area_id: string
   unit_id: string
-  class_definition_id: string
 }
 
 const EMPTY: FormValues = {
@@ -50,7 +47,6 @@ const EMPTY: FormValues = {
   planned_end: '',
   area_id: '',
   unit_id: '',
-  class_definition_id: '',
 }
 
 interface Props {
@@ -101,12 +97,10 @@ export default function ObjectFormModal({ mode, projectId, initialValues, onClos
     planned_end: initialValues?.planned_end ?? '',
     area_id: initialValues?.area_id ?? '',
     unit_id: initialValues?.unit_id ?? '',
-    class_definition_id: initialValues?.class_definition_id ?? '',
   }))
 
   const { data: areas = [] } = useAreas(projectId)
   const { data: units = [] } = useUnitsForArea(values.area_id)
-  const { data: classDefs = [] } = useClassDefinitions(projectId, values.object_type)
 
   useEffect(() => {
     const unitBelongsToArea = units.some((u) => u.id === values.unit_id)
@@ -114,15 +108,6 @@ export default function ObjectFormModal({ mode, projectId, initialValues, onClos
       setValues((v) => ({ ...v, unit_id: '' }))
     }
   }, [units, values.unit_id])
-
-  // Reset class_definition_id when object_type changes (class defs are type-specific)
-  const prevObjectType = React.useRef(values.object_type)
-  useEffect(() => {
-    if (prevObjectType.current !== values.object_type) {
-      prevObjectType.current = values.object_type
-      setValues((v) => ({ ...v, class_definition_id: '' }))
-    }
-  }, [values.object_type])
 
   const setField = (field: keyof FormValues) =>
     (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
@@ -144,7 +129,6 @@ export default function ObjectFormModal({ mode, projectId, initialValues, onClos
         planned_end: values.planned_end || null,
         area_id: values.area_id || null,
         unit_id: values.unit_id || null,
-        class_definition_id: values.class_definition_id || null,
       }
       if (mode === 'create') {
         return createObject({ ...payload, project_id: projectId })
@@ -248,25 +232,6 @@ export default function ObjectFormModal({ mode, projectId, initialValues, onClos
                 </Select>
               </Field>
             </div>
-
-            {classDefs.length > 0 && (
-              <Field label="Library Class">
-                <Select
-                  value={values.class_definition_id || '_none'}
-                  onValueChange={(v) => setSelect('class_definition_id')(v === '_none' ? '' : v)}
-                >
-                  <SelectTrigger className="h-8 text-sm">
-                    <SelectValue placeholder="— none —" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="_none">— none —</SelectItem>
-                    {classDefs.map((c) => (
-                      <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </Field>
-            )}
 
             <div className="grid grid-cols-2 gap-3">
               <Field label="Zone" htmlFor="obj-zone">

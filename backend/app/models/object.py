@@ -14,7 +14,6 @@ if TYPE_CHECKING:
     from app.models.project import Project, Area, Unit
     from app.models.workflow import WorkflowInstance
     from app.models.readiness import ReadinessEvaluation
-    from app.models.class_definition import ClassDefinition
 
 
 # OBJECT_TYPES is intentionally not a closed enum (V3 CONFLICT-1 resolution).
@@ -41,10 +40,6 @@ class Object(UUIDMixin, TimestampMixin, Base):
     parent_object_id: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True), ForeignKey("objects.id", ondelete="SET NULL"), nullable=True
     )
-    class_definition_id: Mapped[uuid.UUID | None] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("class_definitions.id", ondelete="SET NULL"), nullable=True
-    )
-
     name: Mapped[str] = mapped_column(String(255), nullable=False)
     object_type: Mapped[str] = mapped_column(String(50), nullable=False)  # EM, IO, CM, Phase, etc.
     status: Mapped[str] = mapped_column(String(50), nullable=False, default="not_started")
@@ -64,8 +59,6 @@ class Object(UUIDMixin, TimestampMixin, Base):
     child_objects: Mapped[list["Object"]] = relationship(
         "Object", back_populates="parent_object", foreign_keys="[Object.parent_object_id]"
     )
-
-    class_definition: Mapped["ClassDefinition | None"] = relationship("ClassDefinition")
 
     workflow_instances: Mapped[list["WorkflowInstance"]] = relationship(
         "WorkflowInstance",

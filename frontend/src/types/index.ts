@@ -280,24 +280,6 @@ export interface Resource {
   updated_at: string
 }
 
-// ---- Class Definitions (PBS / Instance Set) ----
-
-export interface ClassDefinition {
-  id: string
-  project_id: string
-  area_id: string | null
-  workflow_template_id: string | null
-  name: string
-  object_type: string
-  description: string | null
-  instance_count: number
-  complexity: number
-  effort_scaling_mode: string
-  custom_attributes: unknown[] | null
-  created_at: string
-  updated_at: string
-}
-
 // ---- Schedule / CPM ----
 
 export interface TaskScheduleRow {
@@ -387,7 +369,7 @@ export interface HierarchyNode {
 
 // ---- UI state ----
 
-export type ViewMode = 'dashboard' | 'graph' | 'list' | 'cube' | 'gantt' | 'matrix' | 'library' | 'settings'
+export type ViewMode = 'dashboard' | 'graph' | 'list' | 'cube' | 'gantt' | 'matrix' | 'settings'
 
 export type EntityType = 'object' | 'document'
 

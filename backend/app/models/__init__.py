@@ -13,7 +13,6 @@ from app.models.dependency import DependencyRule, Relationship
 from app.models.readiness import ReadinessEvaluation
 from app.models.evidence import Evidence
 from app.models.resource import Resource
-from app.models.class_definition import ClassDefinition
 from app.models.saved_view import SavedView
 from app.models.zone_diagram import ZoneDiagram, ZoneDiagramPin
 from app.models.hierarchy import HierarchyNode, EntityHierarchyMembership, HierarchyVersion
@@ -36,7 +35,6 @@ __all__ = [
     "ReadinessEvaluation",
     "Evidence",
     "Resource",
-    "ClassDefinition",
     "SavedView",
     "ZoneDiagram",
     "ZoneDiagramPin",
