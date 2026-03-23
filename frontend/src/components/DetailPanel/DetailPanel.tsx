@@ -4,14 +4,13 @@ import { TbCircleCheck, TbAlertCircle, TbArrowRight, TbLink } from 'react-icons/
 import { useAppStore } from '../../store'
 import { useReadiness } from '../../hooks/useReadiness'
 import { getObject, deleteObject } from '../../api/objects'
-import { classDefinitionsApi } from '../../api/classDefinitions'
 import { getDependencyRules } from '../../api/readiness'
 import type { DependencyRuleDetail } from '../../api/readiness'
 import ObjectFormModal from '../ObjectFormModal/ObjectFormModal'
 import { Button } from '../ui/button'
 import { Badge } from '../ui/badge'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '../ui/dialog'
-import type { Blocker, ClassDefinition, ProjectObject } from '../../types'
+import type { Blocker, ProjectObject } from '../../types'
 
 const BLOCKER_TYPE_ICON: Record<string, string> = {
   document: '📄',
@@ -154,12 +153,6 @@ function ObjectDetail({ obj, onEdit, onDelete }: {
   onEdit: () => void
   onDelete: () => void
 }) {
-  const { data: classDef } = useQuery<ClassDefinition>({
-    queryKey: ['class-definition', obj.class_definition_id],
-    queryFn: () => classDefinitionsApi.get(obj.class_definition_id!),
-    enabled: !!obj.class_definition_id,
-  })
-
   return (
     <div className="space-y-4">
       <div className="flex gap-2">
@@ -174,7 +167,6 @@ function ObjectDetail({ obj, onEdit, onDelete }: {
       <div className="bg-muted/50 rounded p-3">
         <MetaRow label="Type" value={obj.object_type} />
         <MetaRow label="Status" value={obj.status} />
-        {classDef && <MetaRow label="Class" value={classDef.name} />}
         <MetaRow label="Zone" value={obj.zone} />
         <MetaRow label="Owner" value={obj.owner} />
         <MetaRow label="Planned Start" value={obj.planned_start} />
