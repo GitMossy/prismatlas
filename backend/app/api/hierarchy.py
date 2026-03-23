@@ -653,23 +653,27 @@ def list_project_hierarchy_memberships(
     )
     results = []
     for m in memberships:
-        name = str(m.entity_id)
-        object_type = None
-        status = None
         if m.entity_type == "object":
             obj = db.query(ProjectObject).filter(ProjectObject.id == m.entity_id).first()
-            if obj:
-                name = obj.name
-                object_type = obj.object_type
-                status = obj.status
-        results.append(NodeMembershipOut(
-            node_id=m.node_id,
-            entity_id=m.entity_id,
-            entity_type=m.entity_type,
-            name=name,
-            object_type=object_type,
-            status=status,
-        ))
+            if not obj:
+                continue  # skip orphaned membership — object was deleted
+            results.append(NodeMembershipOut(
+                node_id=m.node_id,
+                entity_id=m.entity_id,
+                entity_type=m.entity_type,
+                name=obj.name,
+                object_type=obj.object_type,
+                status=obj.status,
+            ))
+        else:
+            results.append(NodeMembershipOut(
+                node_id=m.node_id,
+                entity_id=m.entity_id,
+                entity_type=m.entity_type,
+                name=str(m.entity_id),
+                object_type=None,
+                status=None,
+            ))
     return results
 
 
