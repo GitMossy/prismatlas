@@ -1,4 +1,4 @@
-name: Deploy Atlas Backend to AWS App Runner
+name: Deploy Atlas Backend to EC2
 
 on:
   push:
@@ -8,57 +8,21 @@ on:
       - '.github/workflows/deploy-atlas-backend.yml'
   workflow_dispatch:
 
-env:
-  AWS_REGION: ap-southeast-2
-  ECR_REPOSITORY: prismatlas-api
-  APP_RUNNER_SERVICE_ARN: ${{ secrets.APP_RUNNER_SERVICE_ARN }}
-
 jobs:
   deploy:
-    name: Build & Deploy
+    name: SSH Deploy to EC2
     runs-on: ubuntu-latest
 
-    permissions:
-      id-token: write   # OIDC token for AWS
-      contents: read
-
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Configure AWS credentials (OIDC)
-        uses: aws-actions/configure-aws-credentials@v4
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.0.3
         with:
-          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
-          aws-region: ${{ env.AWS_REGION }}
-
-      - name: Login to Amazon ECR
-        id: login-ecr
-        uses: aws-actions/amazon-ecr-login@v2
-
-      - name: Build, tag and push image to ECR
-        id: build-image
-        env:
-          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          IMAGE_TAG: ${{ github.sha }}
-        run: |
-          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG ./backend
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-          echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
-
-      - name: Update App Runner service
-        env:
-          IMAGE_URI: ${{ steps.build-image.outputs.image }}
-        run: |
-          aws apprunner update-service \
-            --service-arn "$APP_RUNNER_SERVICE_ARN" \
-            --source-configuration "{
-              \"ImageRepository\": {
-                \"ImageIdentifier\": \"$IMAGE_URI\",
-                \"ImageRepositoryType\": \"ECR\",
-                \"ImageConfiguration\": {
-                  \"Port\": \"8000\"
-                }
-              },
-              \"AutoDeploymentsEnabled\": false
-            }"
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_KEY }}
+          script: |
+            cd /opt/atlas
+            git pull origin main
+            source venv/bin/activate
+            pip install -r backend/requirements.txt --quiet
+            sudo supervisorctl restart atlas-api
