@@ -14,6 +14,12 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Check secrets are set
+        run: |
+          if [ -z "${{ secrets.EC2_HOST }}" ]; then echo "EC2_HOST is EMPTY"; else echo "EC2_HOST is set (length ${{ secrets.EC2_HOST && '?' || '0' }})"; fi
+          if [ -z "${{ secrets.EC2_USER }}" ]; then echo "EC2_USER is EMPTY"; else echo "EC2_USER is set"; fi
+          if [ -z "${{ secrets.EC2_KEY }}" ]; then echo "EC2_KEY is EMPTY"; else echo "EC2_KEY is set"; fi
+
       - name: Deploy via SSH
         uses: appleboy/ssh-action@v1.0.3
         with:
