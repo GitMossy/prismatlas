@@ -16,7 +16,6 @@ from datetime import datetime, timezone
 
 from sqlalchemy.orm import Session
 
-from app.models.class_definition import ClassDefinition
 from app.models.dependency import DependencyRule, Relationship
 from app.models.document import Document
 from app.models.object import Object
@@ -221,46 +220,6 @@ def _stage_readiness(
             if rule.is_mandatory:
                 unsatisfied += 1
 
-    # Class-gate: object linked to a ClassDefinition must have it configured
-    if entity_type == "object":
-        obj = db.query(Object).filter(Object.id == entity_id).first()
-        if obj and obj.class_definition_id:
-            total_mandatory += 1
-            cls = db.query(ClassDefinition).filter(
-                ClassDefinition.id == obj.class_definition_id
-            ).first()
-            if not cls:
-                unsatisfied += 1
-                blockers.append({
-                    "type": "class",
-                    "entity_id": str(obj.class_definition_id),
-                    "entity_name": "Unknown class",
-                    "reason": "Linked library class not found",
-                    "severity": "blocking",
-                })
-            elif not cls.workflow_template_id:
-                unsatisfied += 1
-                blockers.append({
-                    "type": "class",
-                    "entity_id": str(cls.id),
-                    "entity_name": cls.name,
-                    "reason": f"Library class '{cls.name}' has no workflow template — configure the class before area objects can proceed",
-                    "severity": "blocking",
-                })
-            else:
-                active_ver = db.query(WorkflowTemplateVersion).filter(
-                    WorkflowTemplateVersion.template_id == cls.workflow_template_id,
-                    WorkflowTemplateVersion.is_active.is_(True),
-                ).first()
-                if not active_ver:
-                    unsatisfied += 1
-                    blockers.append({
-                        "type": "class",
-                        "entity_id": str(cls.id),
-                        "entity_name": cls.name,
-                        "reason": f"Library class '{cls.name}' workflow template has no active version",
-                        "severity": "blocking",
-                    })
 
     if total_mandatory == 0:
         return 1.0

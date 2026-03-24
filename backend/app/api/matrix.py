@@ -28,7 +28,6 @@ from app.models.readiness import ReadinessEvaluation
 from app.models.workflow import WorkflowInstance, StageInstance, TaskInstance
 from app.models.resource import Resource
 from app.models.saved_view import SavedView
-from app.models.class_definition import ClassDefinition
 
 router = APIRouter(prefix="/projects", tags=["matrix"])
 
@@ -590,47 +589,7 @@ def resource_assignment_matrix(project_id: uuid.UUID, db: Session = Depends(get_
     CBS items are represented by ClassDefinition names.
     allocation_pct = (tasks assigned to resource in class) / (total tasks in class) × 100.
     """
-    project = db.query(Project).filter(Project.id == project_id).first()
-    if not project:
-        raise HTTPException(status_code=404, detail="Project not found")
-
-    class_defs = db.query(ClassDefinition).filter(ClassDefinition.project_id == project_id).all()
-    resources = db.query(Resource).filter(Resource.project_id == project_id).all()
-    if not class_defs or not resources:
-        return []
-
-    res_name_map = {r.id: r.name for r in resources}
-
-    # For each ClassDefinition, find WorkflowInstances (entity_type='class_set')
-    from collections import defaultdict
-    total_tasks: dict[str, int] = defaultdict(int)          # class_name → total tasks
-    assigned: dict[tuple[str, str], int] = defaultdict(int)  # (class_name, res_name) → tasks
-
-    for cd in class_defs:
-        wis = (
-            db.query(WorkflowInstance)
-            .filter(
-                WorkflowInstance.entity_type == "class_set",
-                WorkflowInstance.entity_id == cd.id,
-            )
-            .all()
-        )
-        for wi in wis:
-            for si in wi.stage_instances:
-                for task in si.task_instances:
-                    total_tasks[cd.name] += 1
-                    if task.assigned_resource_id and task.assigned_resource_id in res_name_map:
-                        key = (cd.name, res_name_map[task.assigned_resource_id])
-                        assigned[key] += 1
-
+    # CBS/ClassDefinition removed — resource-assignment matrix returns empty
     cells: list[AllocationCell] = []
-    for (class_name, res_name), count in assigned.items():
-        total = total_tasks.get(class_name, 1)
-        pct = round(count / total * 100, 1) if total > 0 else 0.0
-        cells.append(AllocationCell(
-            resource_name=res_name,
-            cbs_item=class_name,
-            allocation_pct=pct,
-        ))
 
     return cells

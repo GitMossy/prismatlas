@@ -186,12 +186,6 @@ def on_dependency_rule_changed(rule: DependencyRule, db: Session) -> None:
                 readiness_engine.evaluate_entity(rule.source_entity_type, inst.entity_id, db)
 
 
-def on_class_definition_changed(class_id: uuid.UUID, db: Session) -> None:
-    """Re-evaluate all Objects whose class_definition_id = class_id."""
-    from app.models.object import Object
-    objects = db.query(Object).filter(Object.class_definition_id == class_id).all()
-    for obj in objects:
-        readiness_engine.evaluate_entity("object", obj.id, db)
 
 
 def _try_evaluate_by_id(entity_id: uuid.UUID, db: Session) -> None:
