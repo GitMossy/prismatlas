@@ -7,6 +7,9 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
   const [state, setState] = useState<AuthState>('loading')
   const [signingIn, setSigningIn] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [showEmail, setShowEmail] = useState(false)
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
 
   useEffect(() => {
     // Check for session (including token fragment from Prism sidebar bridge)
@@ -38,6 +41,14 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
       provider: 'azure',
       options: { redirectTo: window.location.origin },
     })
+    if (error) { setError(error.message); setSigningIn(false) }
+  }
+
+  const signInWithEmail = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setSigningIn(true)
+    setError(null)
+    const { error } = await supabase.auth.signInWithPassword({ email, password })
     if (error) { setError(error.message); setSigningIn(false) }
   }
 
@@ -90,6 +101,44 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
               </svg>
               Continue with Microsoft
             </button>
+          </div>
+
+          <div className="w-full">
+            <button
+              type="button"
+              onClick={() => { setShowEmail(v => !v); setError(null) }}
+              className="w-full text-xs text-muted-foreground hover:text-foreground text-center transition-colors"
+            >
+              {showEmail ? 'Hide email sign in ↑' : 'Or sign in with email ↓'}
+            </button>
+
+            {showEmail && (
+              <form onSubmit={signInWithEmail} className="mt-3 flex flex-col gap-2">
+                <input
+                  type="email"
+                  placeholder="Email"
+                  value={email}
+                  onChange={e => setEmail(e.target.value)}
+                  required
+                  className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                />
+                <input
+                  type="password"
+                  placeholder="Password"
+                  value={password}
+                  onChange={e => setPassword(e.target.value)}
+                  required
+                  className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                />
+                <button
+                  type="submit"
+                  disabled={signingIn}
+                  className="w-full rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50"
+                >
+                  {signingIn ? 'Signing in…' : 'Sign in'}
+                </button>
+              </form>
+            )}
           </div>
 
           <p className="text-xs text-muted-foreground text-center">
