@@ -9,7 +9,6 @@ from app.middleware.auth import verify_token
 from app.api.projects import router as projects_router, areas_router, units_router
 from app.api.effort_matrix import router as effort_matrix_router
 from app.api.calendars import router as calendars_router
-from app.api.wbs_generation import router as wbs_generation_router
 from app.api.objects import router as objects_router
 from app.api.documents import router as documents_router
 from app.api.workflows import (
@@ -164,8 +163,6 @@ app.include_router(effort_matrix_router)
 # V3 Tier-1: Work Calendars for calendar-aware CPM (FR-4.4.2)
 app.include_router(calendars_router)
 
-# V3 Tier-2: Automated WBS generation via Cartesian product (FR-4.4.1)
-app.include_router(wbs_generation_router)
 
 
 @app.get("/health")
